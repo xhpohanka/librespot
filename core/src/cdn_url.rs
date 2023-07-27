@@ -150,6 +150,19 @@ impl TryFrom<CdnUrlMessage> for MaybeExpiringUrls {
                             let slice = &token.1[..end];
                             expiry_str = Some(String::from(&slice[..end]));
                         }
+                    } else if let Some(token) = url
+                        .query_pairs()
+                        .into_iter()
+                        .find(|(key, _value)| key == "Expires")
+                    {
+                        //"https://audio-gm-off.spotifycdn.com/audio/4712bc9e47f7feb4ee3450ef2bb545e1d83c3d54?Expires=1688165560~FullPath~hmac=IIZA28qptl8cuGLq15-SjHKHtLoxzpy_6r_JpAU4MfM=",
+                        if let Some(end) = token.1.find('~') {
+                            // this is the only valid invariant for spotifycdn.com
+                            let slice = &token.1[..end];
+                            expiry_str = Some(String::from(&slice[..end]));
+                        } else {
+                            expiry_str = Some(String::new());
+                        }
                     } else if let Some(query) = url.query() {
                         //"https://audio4-fa.scdn.co/audio/4712bc9e47f7feb4ee3450ef2bb545e1d83c3d54?1688165560_0GKSyXjLaTW1BksFOyI4J7Tf9tZDbBUNNPu9Mt4mhH4=",
                         let mut items = query.split('_');
